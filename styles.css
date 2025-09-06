@@ -1,0 +1,384 @@
+/* styles.css */
+
+/* Basic Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* CSS Variables for Color Scheme */
+:root {
+    --color-primary-black: #1a1a1a; /* A deep, solid black */
+    --color-accent-orange: #ff6600; /* A vibrant, strong orange */
+    --color-text-white: #f8f9fa;    /* A clean, bright white */
+    --color-background-light: #ffffff; /* For main content backgrounds */
+    --color-text-dark: #333333;     /* For text on light backgrounds */
+    --color-border-light: #e0e0e0;  /* Light border color */
+    --color-border-dark: #444444;   /* Dark border color for contrast */
+
+    --font-primary: 'Inter', sans-serif; /* Professional sans-serif */
+    /* Consider adding a more "rugged" display font for headings if desired */
+    /* @import url('https://fonts.googleapis.com/css2?family=Roboto+Slab&display=swap'); */
+    /* --font-rugged: 'Roboto Slab', serif; */
+}
+
+/* Import Inter font */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+
+/* General Body Styling */
+body {
+    font-family: var(--font-primary);
+    line-height: 1.6;
+    background-color: var(--color-background-light);
+    color: var(--color-text-dark);
+    display: flex; /* Used with flex-grow on main to push footer down */
+    flex-direction: column; /* Stack header, main, footer vertically */
+    min-height: 100vh; /* Ensure body takes at least full viewport height */
+}
+
+main {
+    flex-grow: 1; /* Allows main content to expand and push footer down */
+}
+
+/* Container for consistent padding - Tailwind handles this well with `container mx-auto px-4` */
+/* .container {
+    width: 90%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+} */
+
+/* Headings */
+h1, h2, h3, h4, h5, h6 {
+    /* font-family: var(--font-rugged, var(--font-primary)); */ /* Use rugged font if defined, fallback to primary */
+    margin-bottom: 0.75em;
+    line-height: 1.2;
+    color: var(--color-primary-black); /* Darker headings for contrast */
+}
+
+h1 {
+    font-size: 2.5rem; /* Tailwind: text-4xl or text-5xl */
+}
+
+h2 {
+    font-size: 2rem; /* Tailwind: text-3xl */
+}
+
+h3 {
+    font-size: 1.75rem; /* Tailwind: text-2xl */
+}
+
+p {
+    margin-bottom: 1em;
+}
+
+a {
+    text-decoration: none;
+    color: var(--color-accent-orange);
+    transition: color 0.3s ease;
+}
+
+a:hover {
+    color: #e65c00; /* Darker orange on hover */
+}
+
+/* Basic Responsive Images */
+img, svg { /* Added svg for icons */
+    max-width: 100%;
+    height: auto;
+    display: block; /* Removes bottom space under images */
+}
+
+/* Utility Classes (examples, Tailwind provides many more) */
+.text-center {
+    text-align: center;
+}
+.mt-1 { margin-top: 0.25rem; }
+.mb-1 { margin-bottom: 0.25rem; }
+/* ... etc. ... */
+
+
+/* Specific Element Styling (can be replaced/enhanced by Tailwind) */
+
+/* Header Styling (basic example, Tailwind is used more extensively in header.php) */
+/* header {
+    background-color: var(--color-primary-black);
+    color: var(--color-text-white);
+    padding: 1rem 0;
+    border-bottom: 3px solid var(--color-accent-orange);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+} */
+
+/* header .container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+} */
+
+/* header .logo a {
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: var(--color-text-white);
+} */
+
+/* header nav ul {
+    list-style: none;
+    display: flex;
+}
+
+header nav ul li {
+    margin-left: 20px;
+}
+
+header nav ul li a {
+    color: var(--color-text-white);
+    font-weight: 500;
+    padding: 0.5rem 0.75rem;
+    border-radius: 4px;
+}
+
+header nav ul li a:hover,
+header nav ul li a.active {
+    background-color: var(--color-accent-orange);
+    color: var(--color-primary-black);
+} */
+
+/* Social Media Icons Placeholder Styling */
+/* .social-media a {
+    color: var(--color-text-white);
+    margin-left: 15px;
+    font-size: 1.2rem;
+}
+
+.social-media a:hover {
+    color: var(--color-accent-orange);
+} */
+
+/* Main Content Area Styling */
+.main-content {
+    padding: 40px 0; /* Tailwind: py-10 or similar */
+}
+
+/* Footer Styling (basic example, Tailwind is used more extensively in footer.php) */
+/* footer {
+    background-color: #2c2c2c; Slightly lighter than primary black for footer
+    color: var(--color-text-white);
+    text-align: center;
+    padding: 2rem 0;
+    margin-top: auto; Ensure footer is at the bottom
+    border-top: 3px solid var(--color-accent-orange);
+}
+
+footer p {
+    margin-bottom: 0.5em;
+}
+
+footer a {
+    color: var(--color-accent-orange);
+} */
+
+/* Basic Form Styling (for contact.php) */
+.form-group {
+    margin-bottom: 1.5rem; /* Tailwind: mb-6 */
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem; /* Tailwind: mb-2 */
+    font-weight: 600;
+    color: var(--color-text-dark);
+}
+
+.form-group input[type="text"],
+.form-group input[type="email"],
+.form-group input[type="tel"],
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 0.75rem 1rem; /* Tailwind: p-3 or p-4 */
+    border: 1px solid var(--color-border-light);
+    border-radius: 0.375rem; /* Tailwind: rounded-md */
+    font-size: 1rem;
+    font-family: var(--font-primary);
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.form-group input[type="text"]:focus,
+.form-group input[type="email"]:focus,
+.form-group input[type="tel"]:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: var(--color-accent-orange);
+    box-shadow: 0 0 0 3px rgba(255, 102, 0, 0.25); /* Subtle glow */
+}
+
+.form-group textarea {
+    min-height: 150px;
+    resize: vertical;
+}
+
+.btn {
+    display: inline-block;
+    background-color: var(--color-accent-orange);
+    color: var(--color-primary-black); /* Changed to black for better contrast on orange */
+    padding: 0.75rem 1.5rem; /* Tailwind: px-6 py-3 */
+    border: none;
+    border-radius: 0.375rem; /* Tailwind: rounded-md */
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.btn:hover {
+    background-color: #e65c00; /* Darker orange */
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.btn-secondary {
+    background-color: var(--color-primary-black);
+    color: var(--color-text-white);
+}
+.btn-secondary:hover {
+    background-color: #333; /* Darker black */
+}
+
+
+/* Rugged elements (examples) */
+.rugged-border {
+    border: 2px solid var(--color-primary-black);
+    padding: 1rem;
+}
+
+.sophisticated-shadow {
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+/* Hero Section Styling (Example for Homepage) */
+.hero-section {
+    background-color: var(--color-primary-black); /* Or a dark image */
+    color: var(--color-text-white);
+    padding: 60px 20px; /* Tailwind: py-16 px-5 */
+    text-align: center;
+    /* Consider a subtle background texture or image for a rugged feel */
+    /* background-image: url('path/to/rugged-texture.png'); */
+}
+
+.hero-section h1 {
+    color: var(--color-text-white);
+    font-size: 3rem; /* Tailwind: text-5xl or text-6xl */
+    margin-bottom: 0.5em;
+    /* text-shadow: 1px 1px 2px rgba(0,0,0,0.5); */
+}
+
+.hero-section .subtitle {
+    font-size: 1.25rem; /* Tailwind: text-xl */
+    margin-bottom: 1.5em;
+    color: #cccccc; /* Lighter gray for subtitle */
+}
+
+/* Call to Action Button in Hero */
+.hero-section .btn {
+    font-size: 1.1rem; /* Tailwind: text-lg */
+    padding: 0.8rem 2rem; /* Tailwind: px-8 py-3 */
+}
+
+/* Section Styling */
+.content-section {
+    padding: 40px 0; /* Tailwind: py-10 or py-12 */
+}
+
+.content-section.bg-light-gray {
+    background-color: #f4f4f4; /* A very light gray for alternating sections */
+}
+.content-section.bg-dark {
+    background-color: var(--color-primary-black);
+    color: var(--color-text-white);
+}
+.content-section.bg-dark h2, .content-section.bg-dark h3 {
+    color: var(--color-text-white);
+}
+.content-section.bg-dark p {
+    color: #e0e0e0;
+}
+.content-section.bg-dark a {
+    color: var(--color-accent-orange);
+}
+.content-section.bg-dark a:hover {
+    color: #ff8c40; /* Lighter orange on dark bg */
+}
+
+/* Add a Services page link to the navigation */
+/* Ensure services.php is created */
+
+/* Example of a card style for portfolio/reviews */
+.card {
+    background-color: var(--color-background-light);
+    border: 1px solid var(--color-border-light);
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+    overflow: hidden; /* To contain images within rounded borders */
+    transition: box-shadow 0.3s ease, transform 0.3s ease;
+}
+.card:hover {
+    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+    transform: translateY(-5px);
+}
+.card-image img {
+    width: 100%;
+    height: 200px; /* Fixed height for consistency, or use aspect ratio */
+    object-fit: cover; /* Ensures image covers the area, might crop */
+}
+.card-content {
+    padding: 1.5rem; /* Tailwind: p-6 */
+}
+.card-title {
+    font-size: 1.5rem; /* Tailwind: text-xl */
+    margin-bottom: 0.5rem;
+}
+.card-text {
+    font-size: 0.95rem; /* Tailwind: text-base */
+    color: #555;
+    margin-bottom: 1rem;
+}
+
+
+/* Ensure Tailwind utility classes override these if used on the same element */
+/* For example, if you use <div class="p-4">, Tailwind's padding will apply. */
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    /* Header nav (if not using Tailwind's mobile menu) */
+    /* header nav ul {
+        flex-direction: column;
+        align-items: center;
+    }
+    header nav ul li {
+        margin-left: 0;
+        margin-bottom: 10px;
+    } */
+
+    h1 {
+        font-size: 2rem;
+    }
+    h2 {
+        font-size: 1.75rem;
+    }
+    .hero-section h1 {
+        font-size: 2.25rem;
+    }
+    .hero-section .subtitle {
+        font-size: 1.1rem;
+    }
+
+    /* Adjust grid for cards on smaller screens if using custom grid */
+    /* .grid-cols-whatever { grid-template-columns: 1fr; } */
+}
