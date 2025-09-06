@@ -47,6 +47,7 @@ if (!isset($pageTitle)) {
                     <a href="admin_dashboard.php" class="hover:text-accent-orange text-sm font-medium transition-colors">Dashboard</a>
                     <a href="admin_portfolio.php" class="hover:text-accent-orange text-sm font-medium transition-colors">Portfolio</a>
                     <a href="admin_submissions.php" class="hover:text-accent-orange text-sm font-medium transition-colors">Submissions</a>
+                    <a href="admin_reviews.php" class="hover:text-accent-orange text-sm font-medium transition-colors">Reviews</a>
                     <a href="admin_manage_account.php" class="hover:text-accent-orange text-sm font-medium transition-colors">My Account</a>
                     <a href="admin_logout.php" class="bg-accent-orange hover:bg-orange-600 text-primary-black px-3 py-1.5 rounded-md text-sm font-bold transition-colors">Logout</a>
                 </nav>
