@@ -43,7 +43,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['toggle_visibility']))
 // Fetch all reviews from the database
 $reviews = [];
 try {
-    $query = "SELECT id, author, project_type, rating, is_visible, display_order FROM reviews ORDER BY display_order ASC, created_at DESC";
+    $query = "SELECT id, author, project_type, rating, is_visible, display_order, author_image_url FROM reviews ORDER BY display_order ASC, created_at DESC";
     $result = $db->query($query);
     while ($row = $result->fetch_assoc()) {
         $reviews[] = $row;
@@ -92,8 +92,15 @@ include 'admin_header.php';
                         <?php foreach ($reviews as $review): ?>
                         <tr class="hover:bg-gray-50">
                             <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm font-medium text-gray-900"><?php echo htmlspecialchars($review['author']); ?></div>
-                                <div class="text-sm text-gray-500"><?php echo htmlspecialchars($review['project_type'] ?: 'N/A'); ?></div>
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0 h-10 w-10">
+                                        <img class="h-10 w-10 rounded-full object-cover" src="<?php echo !empty($review['author_image_url']) ? htmlspecialchars($review['author_image_url']) : 'https://placehold.co/100x100/cccccc/333333?text=N/A'; ?>" alt="<?php echo htmlspecialchars($review['author']); ?>'s profile picture">
+                                    </div>
+                                    <div class="ml-4">
+                                        <div class="text-sm font-medium text-gray-900"><?php echo htmlspecialchars($review['author']); ?></div>
+                                        <div class="text-sm text-gray-500"><?php echo htmlspecialchars($review['project_type'] ?: 'N/A'); ?></div>
+                                    </div>
+                                </div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                 <?php for ($i = 0; $i < 5; $i++): ?>
@@ -124,3 +131,4 @@ include 'admin_header.php';
 </div>
 
 <?php include 'admin_footer.php'; ?>
+

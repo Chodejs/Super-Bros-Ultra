@@ -7,14 +7,39 @@ require 'db_connect.php';
 $reviews = [];
 $fetchError = '';
 
+// --- PAGINATION LOGIC ---
+$reviewsPerPage = 9; // Display 9 reviews for a perfect 3x3 grid
+$currentPage = isset($_GET['page']) && is_numeric($_GET['page']) ? (int)$_GET['page'] : 1;
+if ($currentPage < 1) {
+    $currentPage = 1;
+}
+
 try {
-    $query = "SELECT author, project_type, review_text, rating, created_at FROM reviews WHERE is_visible = 1 ORDER BY display_order ASC, created_at DESC";
-    $result = $db->query($query);
+    // 1. Get the total number of visible reviews
+    $totalResult = $db->query("SELECT COUNT(id) as total FROM reviews WHERE is_visible = 1");
+    $totalReviews = $totalResult->fetch_assoc()['total'];
+    $totalPages = ceil($totalReviews / $reviewsPerPage);
+
+    // Redirect if user tries to access a page that doesn't exist
+    if ($currentPage > $totalPages && $totalPages > 0) {
+        header('Location: reviews.php?page=' . $totalPages);
+        exit;
+    }
+
+    // 2. Calculate the offset for the SQL query
+    $offset = ($currentPage - 1) * $reviewsPerPage;
+
+    // 3. Fetch only the reviews for the current page
+    $stmt = $db->prepare("SELECT author, project_type, title, review_text, rating, created_at, author_image_url, project_image_url, google_review_url FROM reviews WHERE is_visible = 1 ORDER BY display_order ASC, created_at DESC LIMIT ? OFFSET ?");
+    $stmt->bind_param("ii", $reviewsPerPage, $offset);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    
     while ($row = $result->fetch_assoc()) {
         $reviews[] = $row;
     }
 } catch (Exception $e) {
-    error_log("Public reviews fetch error: " . $e->getMessage());
+    error_log("Public reviews fetch error with pagination: " . $e->getMessage());
     $fetchError = "We're currently unable to load client reviews. Please check back soon.";
 }
 ?>
@@ -38,23 +63,83 @@ try {
             <?php else: ?>
                 <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                     <?php foreach ($reviews as $index => $review): ?>
-                    <div class="bg-white p-6 rounded-xl shadow-lg hover:shadow-2xl transition-shadow duration-300 flex flex-col animate-on-scroll" data-delay="<?php echo $index * 100; ?>">
-                        <div class="mb-4">
-                            <?php for ($i = 0; $i < 5; $i++): ?>
-                                <i class="fas fa-star <?php echo $i < $review['rating'] ? 'text-accent-orange' : 'text-gray-300'; ?>"></i>
-                            <?php endfor; ?>
-                        </div>
-                        <p class="text-gray-700 italic mb-4 flex-grow">"<?php echo htmlspecialchars($review['review_text']); ?>"</p>
-                        <div class="mt-auto border-t pt-4">
-                            <p class="font-semibold text-primary-black"><?php echo htmlspecialchars($review['author']); ?></p>
-                            <?php if (!empty($review['project_type'])): ?>
-                                <p class="text-sm text-gray-500">Project: <?php echo htmlspecialchars($review['project_type']); ?></p>
+                    <div class="bg-white rounded-xl shadow-lg hover:shadow-2xl transition-shadow duration-300 flex flex-col animate-on-scroll overflow-hidden" data-delay="<?php echo $index * 100; ?>">
+                        
+                        <?php if (!empty($review['project_image_url'])): ?>
+                            <img src="<?php echo htmlspecialchars($review['project_image_url']); ?>" alt="Photo of the project for <?php echo htmlspecialchars($review['author']); ?>'s review" class="w-full h-64 object-cover">
+                        <?php endif; ?>
+                        
+                        <div class="p-6 flex flex-col flex-grow">
+                             
+                             <?php if (!empty($review['title'])): ?>
+                                <h3 class="text-xl font-bold text-primary-black mb-2"><?php echo htmlspecialchars($review['title']); ?></h3>
                             <?php endif; ?>
-                            <p class="text-xs text-gray-400">Reviewed on: <?php echo date("F Y", strtotime($review['created_at'])); ?></p>
+
+                            <div class="mb-4">
+                                <?php for ($i = 0; $i < 5; $i++): ?>
+                                    <i class="fas fa-star <?php echo $i < $review['rating'] ? 'text-accent-orange' : 'text-gray-300'; ?>"></i>
+                                <?php endfor; ?>
+                            </div>
+                            <p class="text-gray-700 italic mb-6 flex-grow">"<?php echo htmlspecialchars($review['review_text']); ?>"</p>
+                            
+                            <div class="mt-auto border-t pt-4 flex items-center justify-between">
+                                <div class="flex items-center">
+                                    <img class="h-10 w-10 rounded-full object-cover flex-shrink-0" src="<?php echo !empty($review['author_image_url']) ? htmlspecialchars($review['author_image_url']) : 'https://placehold.co/100x100/cccccc/333333?text=Client'; ?>" alt="<?php echo htmlspecialchars($review['author']); ?>'s profile picture">
+                                    <div class="ml-3">
+                                        <p class="font-semibold text-primary-black leading-tight"><?php echo htmlspecialchars($review['author']); ?></p>
+                                        <?php if (!empty($review['project_type'])): ?>
+                                            <p class="text-sm text-gray-500 leading-tight">Project: <?php echo htmlspecialchars($review['project_type']); ?></p>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+                                
+                                <?php if (!empty($review['google_review_url'])): ?>
+                                    <a href="<?php echo htmlspecialchars($review['google_review_url']); ?>" target="_blank" rel="noopener noreferrer" title="View original review on Google" class="text-gray-500 hover:text-blue-600 transition-colors">
+                                        <i class="fab fa-google fa-xl"></i>
+                                    </a>
+                                <?php endif; ?>
+                            </div>
                         </div>
                     </div>
                     <?php endforeach; ?>
                 </div>
+
+                <!-- --- PAGINATION LINKS --- -->
+                <?php if ($totalPages > 1): ?>
+                <nav class="flex justify-center items-center mt-12 pt-8 border-t" aria-label="Page navigation">
+                    <ul class="inline-flex items-center -space-x-px">
+                        <!-- Previous Page Link -->
+                        <?php if ($currentPage > 1): ?>
+                        <li>
+                            <a href="reviews.php?page=<?php echo $currentPage - 1; ?>" class="py-2 px-3 ml-0 leading-tight text-gray-500 bg-white rounded-l-lg border border-gray-300 hover:bg-gray-100 hover:text-gray-700">
+                                <span class="sr-only">Previous</span>
+                                <i class="fas fa-chevron-left"></i>
+                            </a>
+                        </li>
+                        <?php endif; ?>
+
+                        <!-- Page Number Links -->
+                        <?php for ($i = 1; $i <= $totalPages; $i++): ?>
+                        <li>
+                             <a href="reviews.php?page=<?php echo $i; ?>" class="py-2 px-4 leading-tight border border-gray-300 <?php echo $i === $currentPage ? 'text-primary-black bg-orange-100 font-bold' : 'text-gray-500 bg-white hover:bg-gray-100 hover:text-gray-700'; ?>">
+                                <?php echo $i; ?>
+                            </a>
+                        </li>
+                        <?php endfor; ?>
+
+                        <!-- Next Page Link -->
+                        <?php if ($currentPage < $totalPages): ?>
+                         <li>
+                            <a href="reviews.php?page=<?php echo $currentPage + 1; ?>" class="py-2 px-3 leading-tight text-gray-500 bg-white rounded-r-lg border border-gray-300 hover:bg-gray-100 hover:text-gray-700">
+                                <span class="sr-only">Next</span>
+                                <i class="fas fa-chevron-right"></i>
+                            </a>
+                        </li>
+                        <?php endif; ?>
+                    </ul>
+                </nav>
+                <?php endif; ?>
+
             <?php endif; ?>
         </div>
     </section>
@@ -73,3 +158,4 @@ try {
 </div>
 
 <?php include 'footer.php'; ?>
+
