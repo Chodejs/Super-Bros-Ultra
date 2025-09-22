@@ -1,8 +1,5 @@
 <?php
-session_start(); // Good for potential flash messages, though not fully used in this basic feedback
-
-// Attempt to include the database connection script
-// The @ suppresses warnings if the file isn't found, we'll check $db existence later
+session_start();
 require 'db_connect.php';
 
 $pageTitle = "Contact Super Brothers LLC - Free Estimate for Construction Services";
@@ -14,18 +11,15 @@ $formError = false;
 $formSubmittedSuccessfully = false;
 
 // Define the recipient email address for notifications
-// $recipient_email = "superbrothersllc@gmail.com";
 $recipient_email = "chris@maracentral.com";
-// Define a "From" address for the emails. Replace yourdomain.com with Audin's actual domain if possible,
-// or ensure the server is configured to send mail from a generic address.
 $from_email = "contactform@superbrothersllc.com"; // Example
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $name = trim($_POST['name'] ?? '');
     $email = trim($_POST['email'] ?? '');
-    $phone = trim($_POST['phone'] ?? ''); // Optional field
+    $phone = trim($_POST['phone'] ?? '');
     $project_type = trim($_POST['project_type'] ?? '');
-    $message_text = trim($_POST['message'] ?? ''); // Renamed to avoid conflict with $message variable later
+    $message_text = trim($_POST['message'] ?? '');
 
     // Basic validation
     if (empty($name) || empty($email) || empty($message_text) || empty($project_type)) {
@@ -35,88 +29,58 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $formMessage = "Invalid email format. Please provide a valid email address.";
         $formError = true;
     } else {
-        // All basic client-side validations passed, proceed with server-side processing
-
+        // --- 1. ATTEMPT TO SAVE TO DATABASE ---
         $db_success = false;
-        $email_success = false;
-
-        // 1. Save to Database
-        if (isset($db) && $db instanceof mysqli) { // Check if $db object exists and is a mysqli object
+        if (isset($db) && $db instanceof mysqli) {
             try {
-                // Sanitize inputs for SQL (though prepared statements are the primary defense)
-                // For display, htmlspecialchars is good. For DB, prepared statements handle it.
-                
                 $ip_address = $_SERVER['REMOTE_ADDR'];
-
                 $stmt = $db->prepare("INSERT INTO contact_submissions (name, email, phone, project_type, message, ip_address) VALUES (?, ?, ?, ?, ?, ?)");
-                // Check if prepare() failed
-                if ($stmt === false) {
-                    throw new Exception("Database prepare statement failed: " . $db->error);
-                }
-                
                 $stmt->bind_param("ssssss", $name, $email, $phone, $project_type, $message_text, $ip_address);
-                
-                if ($stmt->execute()) {
-                    $db_success = true;
-                } else {
-                    // Log detailed error, provide generic message
-                    error_log("Database execute error: " . $stmt->error);
-                    // $formMessage .= " Error saving to database. Please try again."; // Append to message below
-                    // $formError = true; // Keep true if other operations also fail or this is critical
-                }
+                $stmt->execute();
+                $db_success = true;
                 $stmt->close();
             } catch (Exception $e) {
-                error_log("Database operation error: " . $e->getMessage());
-                // $formMessage .= " A database error occurred. Your message may not have been saved.";
-                // $formError = true;
+                // Database operation failed. Log it and set a specific user-facing error.
+                $db_error_message = $e->getMessage();
+                error_log("Contact Form DB Error: " . $db_error_message);
+                $formMessage = "Sorry, there was a database error. Your message could not be saved. Please contact us directly. (Dev Info: " . htmlspecialchars($db_error_message) . ")";
+                $formError = true;
             }
         } else {
-            error_log("Contact Form: Database connection object (\$db) not available or not a mysqli instance.");
-            // $formMessage .= " Database service is currently unavailable. Your message could not be saved.";
-            // $formError = true; // This is a significant error if DB saving is expected
-        }
-
-        // 2. Send Email Notification
-        $email_subject = "New Contact Form Submission from " . htmlspecialchars($name);
-        $email_body = "You have received a new message from your website contact form:\n\n";
-        $email_body .= "Name: " . htmlspecialchars($name) . "\n";
-        $email_body .= "Email: " . htmlspecialchars($email) . "\n";
-        if (!empty($phone)) {
-            $email_body .= "Phone: " . htmlspecialchars($phone) . "\n";
-        }
-        $email_body .= "Project Type: " . htmlspecialchars($project_type) . "\n";
-        $email_body .= "Message:\n" . htmlspecialchars($message_text) . "\n\n";
-        $email_body .= "Submitted from IP: " . $_SERVER['REMOTE_ADDR'] . "\n";
-
-        $headers = "From: Super Brothers LLC Form <" . $from_email . ">\r\n";
-        $headers .= "Reply-To: " . htmlspecialchars($email) . "\r\n";
-        $headers .= "X-Mailer: PHP/" . phpversion();
-
-        if (mail($recipient_email, $email_subject, $email_body, $headers)) {
-            $email_success = true;
-        } else {
-            error_log("Contact Form: Email sending failed. To: $recipient_email");
-            // $formMessage .= " Error sending email notification."; // Append to message below
-            // $formError = true; // Set to true if email is critical and failed
-        }
-
-        // Consolidate success/error messages
-        if ($db_success && $email_success) {
-            $formMessage = "Thank you, " . htmlspecialchars($name) . "! Your message has been received and a notification has been sent. We'll be in touch soon via " . htmlspecialchars($email) . ".";
-            $formSubmittedSuccessfully = true;
-            $_POST = []; // Clear form fields after successful submission
-        } elseif ($db_success) {
-            $formMessage = "Thank you, " . htmlspecialchars($name) . "! Your message has been saved. There was an issue sending an email notification, but we have your submission. We'll be in touch soon via " . htmlspecialchars($email) . ".";
-            $formSubmittedSuccessfully = true; // Still a success from user's perspective of submitting
-            $_POST = [];
-        } elseif ($email_success) {
-            // This case might be less ideal if DB save is primary
-            $formMessage = "Thank you, " . htmlspecialchars($name) . "! Your message has been sent via email. There was an issue saving to our database, but we'll be in touch soon via " . htmlspecialchars($email) . ".";
-            $formError = true; // Since DB save failed, consider it a partial error
-        } else {
-            $formMessage = "Sorry, " . htmlspecialchars($name) . ", there was an error processing your request. Please try again later or contact us directly if the problem persists.";
+            // Database connection object wasn't available.
+            error_log("Contact Form Error: Database connection object not available.");
+            $formMessage = "Sorry, the site is experiencing a configuration issue and cannot save your submission. Please contact us directly.";
             $formError = true;
         }
+
+        // --- 2. ATTEMPT TO SEND EMAIL (only if DB was successful) ---
+        if ($db_success) {
+            $email_subject = "New Contact Form Submission from " . htmlspecialchars($name);
+            $email_body = "You have received a new message from your website contact form:\n\n" .
+                          "Name: " . htmlspecialchars($name) . "\n" .
+                          "Email: " . htmlspecialchars($email) . "\n" .
+                          (!empty($phone) ? "Phone: " . htmlspecialchars($phone) . "\n" : "") .
+                          "Project Type: " . htmlspecialchars($project_type) . "\n" .
+                          "Message:\n" . htmlspecialchars($message_text) . "\n\n" .
+                          "Submitted from IP: " . $_SERVER['REMOTE_ADDR'] . "\n";
+            $headers = "From: Super Brothers LLC Form <" . $from_email . ">\r\n" .
+                       "Reply-To: " . htmlspecialchars($email) . "\r\n" .
+                       "X-Mailer: PHP/" . phpversion();
+
+            if (mail($recipient_email, $email_subject, $email_body, $headers)) {
+                // Email sent successfully
+                $formMessage = "Thank you, " . htmlspecialchars($name) . "! Your message has been received. We'll be in touch soon.";
+                $formSubmittedSuccessfully = true;
+                $_POST = []; // Clear form fields
+            } else {
+                // Email failed, but DB succeeded. This is a partial success.
+                error_log("Contact Form Error: mail() function failed.");
+                $formMessage = "Thank you, " . htmlspecialchars($name) . "! Your message was saved to our system, but a notification email could not be sent. We will get back to you shortly.";
+                $formSubmittedSuccessfully = true; // Still a success for the user.
+                $_POST = []; // Clear form fields
+            }
+        }
+        // If $db_success was false, the error message is already set from the DB catch block.
     }
 }
 ?>
@@ -124,7 +88,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <div class="bg-background-light">
     <section class="page-header py-16 bg-primary-black text-text-white text-center">
         <div class="container mx-auto px-4 sm:px-6 lg:px-8">
-            <h1 class="text-4xl md:text-5xl font-bold animate-on-scroll"><?php echo htmlspecialchars($pageTitle); ?></h1>
+            <h1 class="text-4xl md:text-5xl font-bold animate-on-scroll">Contact Us</h1>
             <p class="text-lg md:text-xl mt-4 text-gray-300 animate-on-scroll" data-delay="200">We're Ready to Build Your Vision. Let's Talk!</p>
         </div>
     </section>
@@ -136,11 +100,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     <h2 class="text-2xl md:text-3xl font-bold text-primary-black mb-6">Send Us a Message</h2>
                     
                     <?php if (!empty($formMessage)): ?>
-                        <div class="mb-6 p-4 rounded-md <?php echo ($formError || !$formSubmittedSuccessfully && $_SERVER["REQUEST_METHOD"] == "POST") ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'; ?>" role="alert">
+                        <div class="mb-6 p-4 rounded-md <?php echo ($formError) ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'; ?>" role="alert">
                             <?php echo $formMessage; ?>
                         </div>
                     <?php endif; ?>
 
+                    <?php if (!$formSubmittedSuccessfully): ?>
                     <form id="contactForm" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>#contactForm" method="POST" class="space-y-6">
                         <div>
                             <label for="name" class="block text-sm font-medium text-gray-700">Full Name <span class="text-accent-orange">*</span></label>
@@ -181,6 +146,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             </button>
                         </div>
                     </form>
+                    <?php endif; ?>
                 </div>
 
                 <div class="animate-on-scroll" data-delay="200">
@@ -249,7 +215,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     <section class="map-section animate-on-scroll">
         <iframe 
-            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d206169.7178962695!2d-86.9784963992529!3d36.18642195808433!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x886466db23507649%3A0x735c5b903c5d8000!2sNashville%2C%20TN!5e0!3m2!1sen!2sus!4v1684889890000!5m2!1sen!2sus" 
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d206169.7178962695!2d-86.9784963992529!3d36.18642195808433!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x886466db23507649%3A0x735c5b903c5d8000!2sNashville%2C%2D%2DTN!5e0!3m2!1sen!2sus!4v1684889890000!5m2!1sen!2sus" 
             width="100%" 
             height="450" 
             style="border:0;" 

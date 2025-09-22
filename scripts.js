@@ -18,21 +18,20 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Mobile menu toggle (if not handled by inline script in footer.php)
-    // This is a more robust way if you move the script from footer.php
+    // Mobile menu toggle
     const menuButton = document.getElementById('mobile-menu-button');
     const mobileMenu = document.getElementById('mobile-menu');
 
     if (menuButton && mobileMenu) {
-        const openIcon = menuButton.querySelector('svg.block'); // Assuming first SVG is open
-        const closeIcon = menuButton.querySelector('svg.hidden'); // Assuming second SVG is close
+        const openIcon = menuButton.querySelector('svg.block');
+        const closeIcon = menuButton.querySelector('svg.hidden');
 
         menuButton.addEventListener('click', () => {
             const isExpanded = menuButton.getAttribute('aria-expanded') === 'true' || false;
             menuButton.setAttribute('aria-expanded', !isExpanded);
             mobileMenu.classList.toggle('hidden');
 
-            if (openIcon && closeIcon) { // Check if icons exist
+            if (openIcon && closeIcon) {
                  openIcon.classList.toggle('hidden');
                  openIcon.classList.toggle('block');
                  closeIcon.classList.toggle('hidden');
@@ -42,29 +41,25 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
 
-    // Optional: Intersection Observer for animations on scroll
-    // Example: Fade in elements as they enter viewport
+    // Intersection Observer for animations on scroll
     const animatedElements = document.querySelectorAll('.animate-on-scroll');
     if (animatedElements.length > 0) {
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
                     entry.target.classList.add('is-visible');
-                    observer.unobserve(entry.target); // Optional: stop observing once animated
+                    observer.unobserve(entry.target);
                 }
             });
-        }, { threshold: 0.1 }); // Trigger when 10% of the element is visible
+        }, { threshold: 0.1 });
 
         animatedElements.forEach(el => {
             observer.observe(el);
         });
     }
-    // Add a CSS class for this:
-    // .animate-on-scroll { opacity: 0; transform: translateY(20px); transition: opacity 0.5s ease, transform 0.5s ease; }
-    // .animate-on-scroll.is-visible { opacity: 1; transform: translateY(0); }
 
 
-    // Basic form validation feedback example (can be greatly expanded)
+    // Basic form validation feedback example
     const contactForm = document.getElementById('contactForm');
     if (contactForm) {
         contactForm.addEventListener('submit', function(event) {
@@ -74,11 +69,10 @@ document.addEventListener('DOMContentLoaded', function() {
             requiredFields.forEach(field => {
                 if (!field.value.trim()) {
                     isValid = false;
-                    // You would typically show an error message next to the field
-                    field.style.borderColor = 'red'; // Simple visual feedback
+                    field.style.borderColor = 'red';
                     console.warn(`Field ${field.name || field.id} is required.`);
                 } else {
-                    field.style.borderColor = ''; // Reset border color
+                    field.style.borderColor = '';
                 }
             });
 
@@ -87,25 +81,71 @@ document.addEventListener('DOMContentLoaded', function() {
                 isValid = false;
                 emailField.style.borderColor = 'red';
                 console.warn('Invalid email format.');
-                // Add user-facing error message here
             }
 
 
             if (!isValid) {
-                event.preventDefault(); // Prevent form submission
-                alert('Please fill out all required fields correctly.'); // Replace with a nicer modal/message
-            } else {
-                // Optionally, you can add a "submitting..." state here
-                console.log('Form submitted (simulated).');
-                // For a real submission, you'd use Fetch API or XMLHttpRequest
+                event.preventDefault();
+                // A non-blocking notification would be better in a real app
+                // alert('Please fill out all required fields correctly.');
             }
         });
     }
 
     function isValidEmail(email) {
-        // Basic email validation regex
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         return emailRegex.test(email);
     }
+
+    // --- NEW & IMPROVED PORTFOLIO LIGHTBOX LOGIC ---
+    const lightbox = document.getElementById('myLightbox');
+    
+    // Run this logic only if we are on a page with a lightbox (i.e., portfolio.php)
+    if (lightbox) {
+        const lightboxImg = document.getElementById('lightboxImg');
+        const lightboxCaption = document.getElementById('lightboxCaption');
+        const portfolioLinks = document.querySelectorAll('.portfolio-link');
+        const closeButton = lightbox.querySelector('.lightbox-close');
+
+        function openLightbox(imageUrl, captionText) {
+            if (!lightboxImg || !lightboxCaption) return;
+            lightboxImg.src = imageUrl;
+            lightboxCaption.innerHTML = captionText;
+            lightbox.style.display = "block";
+            document.body.style.overflow = 'hidden'; // Prevent background scrolling
+        }
+
+        function closeLightbox() {
+            lightbox.style.display = "none";
+            document.body.style.overflow = 'auto'; // Restore scrolling
+        }
+
+        portfolioLinks.forEach(link => {
+            link.addEventListener('click', function(event) {
+                event.preventDefault();
+                const imageUrl = this.getAttribute('href');
+                const captionText = this.dataset.caption || '';
+                openLightbox(imageUrl, captionText);
+            });
+        });
+
+        if (closeButton) {
+            closeButton.addEventListener('click', closeLightbox);
+        }
+
+        lightbox.addEventListener('click', function(event) {
+            // Close lightbox if the dark background is clicked, but not the image itself
+            if (event.target === lightbox) {
+                closeLightbox();
+            }
+        });
+
+        document.addEventListener('keydown', function(event) {
+            if (event.key === "Escape" && lightbox.style.display === "block") {
+                closeLightbox();
+            }
+        });
+    }
+    // --- END LIGHTBOX LOGIC ---
 
 });

@@ -5,6 +5,12 @@
 // This allows us to use try-catch blocks for cleaner error handling.
 mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
+// // Database credentials for YOUR specific Live  development
+// $db_host = "mysql.christow.blog";         // Standard for local MySQL. You can also use "localhost:3306"
+// $db_user = "architect11";              // Your local MySQL username
+// $db_pass = "{ReowReow11}";             // Your local MySQL password for the 'root' user
+// $db_name = "christow_blog";     // Your specific local database name
+
 // Database credentials for YOUR specific LOCALHOST development
 $db_host = "localhost";         // Standard for local MySQL. You can also use "localhost:3306"
 $db_user = "root";              // Your local MySQL username
