@@ -58,7 +58,7 @@
 
             <div class="mt-10 pt-8 border-t border-custom-gray-700 text-center text-sm">
                 <p>&copy; <?php echo date("Y"); ?> Super Brothers LLC. All Rights Reserved.</p>
-                <p class="mt-1">Website by <a href="https://chrisandinga.com" target="_blank" rel="noopener noreferrer" class="hover:text-accent-orange transition-colors duration-300">Chris & Emma</a></p>
+                <p class="mt-1">Website by <a href="https://chrisandemmashow.com/contact.php" target="_blank" rel="noopener noreferrer" class="hover:text-accent-orange transition-colors duration-300">Chris & Emma</a></p>
                 <p class="mt-2 text-xs text-gray-500"><a href="admin_login.php" class="hover:text-accent-orange transition-colors duration-300">Admin Portal</a></p>
             </div>
         </div>
